@@ -60,7 +60,7 @@ func (s *server) handleUploadStream(
 	ctx context.Context,
 	conn *websocket.Conn,
 	tag *tags.Tag,
-	putter storage.Putter,
+	putter storage.SimpleChunkPutter,
 	mode storage.ModePut,
 	pin bool,
 	wait func() error,
@@ -166,7 +166,7 @@ func (s *server) handleUploadStream(
 			return
 		}
 
-		seen, err := putter.Put(ctx, mode, chunk)
+		seen, err := putter.Put(chunk)
 		if err != nil {
 			s.logger.Debugf("chunk stream handler: chunk write error: %v, addr %s", err, chunk.Address())
 			s.logger.Error("chunk stream handler: chunk write error")
@@ -177,7 +177,7 @@ func (s *server) handleUploadStream(
 				sendErrorClose(websocket.CloseInternalServerErr, "chunk write error")
 			}
 			return
-		} else if len(seen) > 0 && seen[0] && tag != nil {
+		} else if seen && tag != nil {
 			err := tag.Inc(tags.StateSeen)
 			if err != nil {
 				s.logger.Debugf("chunk stream handler: increment tag", err)

@@ -31,7 +31,7 @@ type chunkAddressResponse struct {
 
 func (s *server) processUploadRequest(
 	r *http.Request,
-) (ctx context.Context, tag *tags.Tag, putter storage.Putter, waitFn func() error, err error) {
+) (ctx context.Context, tag *tags.Tag, putter storage.SimpleChunkPutter, waitFn func() error, err error) {
 
 	if h := r.Header.Get(SwarmTagHeader); h != "" {
 		tag, err = s.getTag(h)
@@ -106,7 +106,7 @@ func (s *server) chunkUploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	seen, err := putter.Put(ctx, requestModePut(r), chunk)
+	seen, err := putter.Put(chunk)
 	if err != nil {
 		s.logger.Debugf("chunk upload: chunk write error: %v, addr %s", err, chunk.Address())
 		s.logger.Error("chunk upload: chunk write error")
@@ -117,7 +117,7 @@ func (s *server) chunkUploadHandler(w http.ResponseWriter, r *http.Request) {
 			jsonhttp.InternalServerError(w, "chunk write error")
 		}
 		return
-	} else if len(seen) > 0 && seen[0] && tag != nil {
+	} else if seen && tag != nil {
 		err := tag.Inc(tags.StateSeen)
 		if err != nil {
 			s.logger.Debugf("chunk upload: increment tag", err)

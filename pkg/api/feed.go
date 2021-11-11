@@ -158,7 +158,7 @@ func (s *server) feedPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	l := loadsave.New(putter, requestPipelineFactory(r.Context(), putter, r))
+	l := loadsave.New(s.contextStore.LookupContext(), putter, requestPipelineFactory(r.Context(), putter, r))
 	feedManifest, err := manifest.NewDefaultManifest(l, false)
 	if err != nil {
 		s.logger.Debugf("feed put: new manifest: %v", err)
