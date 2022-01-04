@@ -312,6 +312,7 @@ func (db *DB) putUpload(batch *leveldb.Batch, binIDs map[uint8]uint64, item shed
 		}
 		_, err = db.setRemove(batch, previous, true)
 		if err != nil {
+			db.logger.Warningf("tried insert chunk but failed. previous item batchID %x index %x hash %x timestamp %x. new item batchID %x index %x hash %x timestamp %x.", previous.BatchID, previous.Index, previous.Address, previous.Timestamp, item.BatchID, item.Index, item.Address, item.Timestamp)
 			return false, 0, fmt.Errorf("same slot remove: %w", err)
 		}
 	}
