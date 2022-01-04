@@ -19,6 +19,7 @@ package localstore
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/ethersphere/bee/pkg/shed"
@@ -221,7 +222,7 @@ func (db *DB) setRemove(batch *leveldb.Batch, item shed.Item, check bool) (gcSiz
 	if item.StoreTimestamp == 0 {
 		item, err = db.retrievalDataIndex.Get(item)
 		if err != nil {
-			return 0, err
+			return 0, fmt.Errorf("retrieval data index: %w", err)
 		}
 	}
 
@@ -256,7 +257,7 @@ func (db *DB) setRemove(batch *leveldb.Batch, item shed.Item, check bool) (gcSiz
 		_, err := db.gcIndex.Get(item)
 		if err != nil {
 			if !errors.Is(err, leveldb.ErrNotFound) {
-				return 0, err
+				return 0, fmt.Errorf("gc index get: %w", err)
 			}
 			return 0, db.pinIndex.DeleteInBatch(batch, item)
 		}
